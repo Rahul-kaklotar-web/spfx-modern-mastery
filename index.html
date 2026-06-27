@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SharePoint Modern UI Mastery — Build SPFx Web Parts with React & TypeScript</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Base ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Inter',sans-serif;background:#07111F;color:#E2EAF4;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+
+/* ── Tokens ── */
+:root{
+  --navy:    #07111F;
+  --navy2:   #0D1E31;
+  --navy3:   #122540;
+  --blue:    #0078D4;
+  --blue2:   #106EBE;
+  --teal:    #00B4D8;
+  --gold:    #FFB900;
+  --white:   #FFFFFF;
+  --text1:   #E2EAF4;
+  --text2:   #8EA8C3;
+  --text3:   #4D6880;
+  --border:  rgba(255,255,255,0.07);
+  --glow:    0 0 40px rgba(0,120,212,0.18);
+  --radius:  10px;
+  --code-bg: #0A1929;
+}
+
+/* ── Typography ── */
+.display{font-family:'Space Grotesk',sans-serif;font-weight:700;line-height:1.1;letter-spacing:-0.02em}
+.mono{font-family:'JetBrains Mono',monospace}
+h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;color:var(--white)}
+h3{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.1rem;color:var(--white)}
+
+/* ── Layout ── */
+.container{max-width:1060px;margin:0 auto;padding:0 24px}
+section{padding:80px 0}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,17,31,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1060px;margin:0 auto}
+.nav-logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--white);display:flex;align-items:center;gap:8px}
+.nav-logo span{color:var(--teal)}
+.nav-cta{background:var(--blue);color:#fff;padding:9px 20px;border-radius:var(--radius);font-size:0.875rem;font-weight:600;transition:background 0.2s}
+.nav-cta:hover{background:var(--blue2)}
+
+/* ── HERO ── */
+.hero{padding:160px 0 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(0,120,212,0.12) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.25);border-radius:100px;padding:6px 14px;font-size:0.8rem;font-weight:500;color:var(--teal);margin-bottom:24px}
+.hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero h1{font-size:clamp(2.4rem,5.5vw,4rem);color:var(--white);margin-bottom:12px}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero-sub{font-size:1.15rem;color:var(--text2);max-width:560px;margin-bottom:36px;line-height:1.7}
+.hero-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:48px}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;padding:14px 28px;border-radius:var(--radius);font-weight:600;font-size:1rem;transition:all 0.2s;box-shadow:0 4px 20px rgba(0,120,212,0.35)}
+.btn-primary:hover{background:var(--blue2);transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,120,212,0.5)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);color:var(--text1);padding:14px 28px;border-radius:var(--radius);font-weight:500;font-size:1rem;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--text2);color:var(--white)}
+.hero-social-proof{display:flex;align-items:center;gap:20px;color:var(--text2);font-size:0.875rem;flex-wrap:wrap}
+.hero-social-proof strong{color:var(--white)}
+
+/* ── CODE PREVIEW ── */
+.code-preview{background:var(--code-bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--glow);max-width:640px}
+.code-header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot.r{background:#FF5F56}.dot.y{background:#FFBD2E}.dot.g{background:#27C93F}
+.code-file{font-size:0.75rem;color:var(--text3);margin-left:8px;font-family:'JetBrains Mono',monospace}
+.code-body{padding:20px 22px;font-size:0.82rem;line-height:1.7;font-family:'JetBrains Mono',monospace;overflow-x:auto}
+.ck{color:#79B8FF}.cs{color:#9ECBFF}.cc{color:#6A9955}.ct{color:#B392F0}.cf{color:#FFAB70}.cn{color:#E2EAF4}
+
+/* ── HERO LAYOUT ── */
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+@media(max-width:768px){.hero-grid{grid-template-columns:1fr}}
+
+/* ── STATS STRIP ── */
+.stats-strip{background:var(--navy2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:32px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+@media(max-width:600px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-num{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;color:var(--white)}
+.stat-num span{color:var(--teal)}
+.stat-label{font-size:0.8rem;color:var(--text2);margin-top:2px}
+
+/* ── PROBLEM / SOLUTION ── */
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px}
+@media(max-width:640px){.problem-grid{grid-template-columns:1fr}}
+.problem-card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:28px}
+.problem-card.solution{border-color:rgba(0,120,212,0.3);background:rgba(0,120,212,0.05)}
+.card-label{font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px}
+.card-label.red{color:#E74C3C}.card-label.blue{color:var(--teal)}
+.problem-item{display:flex;gap:10px;margin-bottom:12px;font-size:0.9rem;color:var(--text2);align-items:flex-start}
+.problem-item .ico{flex-shrink:0;margin-top:2px;font-size:1rem}
+
+/* ── WHAT'S INSIDE ── */
+.inside-section{background:var(--navy2)}
+.chapter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+@media(max-width:700px){.chapter-grid{grid-template-columns:1fr}}
+.chapter-card{background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:22px;transition:border-color 0.2s}
+.chapter-card:hover{border-color:rgba(0,120,212,0.4)}
+.chapter-num{font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.chapter-title{font-size:0.95rem;font-weight:600;color:var(--white);margin-bottom:6px;font-family:'Space Grotesk',sans-serif}
+.chapter-desc{font-size:0.82rem;color:var(--text2);line-height:1.5}
+
+/* ── PROJECTS ── */
+.projects-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
+@media(max-width:640px){.projects-grid{grid-template-columns:1fr}}
+.project-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:22px;display:flex;gap:16px}
+.project-icon{width:44px;height:44px;border-radius:10px;background:rgba(0,120,212,0.15);border:1px solid rgba(0,120,212,0.25);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.project-name{font-weight:600;color:var(--white);font-size:0.95rem;margin-bottom:4px;font-family:'Space Grotesk',sans-serif}
+.project-desc{font-size:0.82rem;color:var(--text2);line-height:1.5}
+.project-tag{display:inline-block;font-size:0.7rem;font-weight:500;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.2);color:var(--teal);border-radius:4px;padding:2px 8px;margin-top:8px}
+
+/* ── WHO IT'S FOR ── */
+.audience-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:48px}
+@media(max-width:600px){.audience-grid{grid-template-columns:1fr}}
+.audience-card{display:flex;gap:14px;padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--navy2)}
+.audience-icon{font-size:1.6rem;flex-shrink:0}
+.audience-title{font-weight:600;color:var(--white);font-size:0.9rem;font-family:'Space Grotesk',sans-serif}
+.audience-desc{font-size:0.82rem;color:var(--text2);margin-top:4px;line-height:1.5}
+
+/* ── PRICING ── */
+.pricing-section{text-align:center}
+.pricing-card{max-width:480px;margin:48px auto 0;background:var(--navy2);border:1px solid rgba(0,120,212,0.3);border-radius:18px;overflow:hidden;box-shadow:0 0 60px rgba(0,120,212,0.1)}
+.pricing-top{background:linear-gradient(135deg,#0D1E31 0%,#122540 100%);padding:36px 36px 28px;border-bottom:1px solid var(--border)}
+.pricing-badge{display:inline-block;background:var(--gold);color:#1a0e00;font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:100px;margin-bottom:16px;letter-spacing:0.05em}
+.price-original{font-size:1rem;color:var(--text3);text-decoration:line-through;margin-bottom:4px}
+.price-current{font-family:'Space Grotesk',sans-serif;font-size:3.5rem;font-weight:700;color:var(--white);line-height:1}
+.price-current sup{font-size:1.5rem;vertical-align:top;margin-top:10px}
+.price-desc{color:var(--text2);font-size:0.875rem;margin-top:8px}
+.pricing-body{padding:28px 36px 36px}
+.include-list{text-align:left;margin-bottom:28px}
+.include-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text1)}
+.include-item:last-child{border-bottom:none}
+.include-item .check{color:#27C93F;font-size:1.1rem;flex-shrink:0}
+.btn-buy{display:block;width:100%;background:var(--blue);color:#fff;padding:16px;border-radius:var(--radius);font-weight:700;font-size:1rem;text-align:center;border:none;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 20px rgba(0,120,212,0.35)}
+.btn-buy:hover{background:var(--blue2);transform:translateY(-1px)}
+.guarantee{margin-top:16px;font-size:0.8rem;color:var(--text2);text-align:center}
+
+/* ── FAQ ── */
+.faq-list{max-width:680px;margin:48px auto 0}
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0}
+.faq-q{font-weight:600;color:var(--white);font-size:0.95rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:'Space Grotesk',sans-serif}
+.faq-a{color:var(--text2);font-size:0.875rem;line-height:1.7;margin-top:12px}
+
+/* ── FOOTER ── */
+footer{background:var(--navy2);border-top:1px solid var(--border);padding:40px 0;text-align:center}
+.footer-logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;color:var(--white);margin-bottom:12px}
+.footer-sub{color:var(--text3);font-size:0.8rem}
+
+/* ── Section headers ── */
+.section-eyebrow{font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;font-family:'JetBrains Mono',monospace}
+.section-desc{color:var(--text2);font-size:1rem;margin-top:12px;max-width:520px}
+
+/* ── Divider ── */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect width="22" height="22" rx="6" fill="#0078D4"/><path d="M5 11h12M11 5v12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+      SPFx <span>Mastery</span>
+    </div>
+    <a href="#pricing" class="nav-cta">Get the Book — $49</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">New for 2025 — SPFx 1.18 + React 18</div>
+        <h1 class="display hero-h1">
+          Build <em>Modern</em> SharePoint Web Parts<br/>with React
+        </h1>
+        <p class="hero-sub">
+          The complete guide for SharePoint developers who want to master SPFx, React, and TypeScript — and finally command what they're worth.
+        </p>
+        <div class="hero-actions">
+          <a href="#pricing" class="btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Get the Book — $49
+          </a>
+          <a href="#inside" class="btn-secondary">See what's inside ↓</a>
+        </div>
+        <div class="hero-social-proof">
+          <span>✅ <strong>10 chapters</strong> of hands-on content</span>
+          <span>✅ <strong>5 real projects</strong> to build</span>
+          <span>✅ Instant PDF download</span>
+        </div>
+      </div>
+      <div>
+        <div class="code-preview">
+          <div class="code-header">
+            <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+            <span class="code-file">EmployeeDirectory.tsx</span>
+          </div>
+          <div class="code-body">
+<span class="ck">import</span> <span class="cn">* as React</span> <span class="ck">from</span> <span class="cs">'react'</span><span class="cn">;</span><br/>
+<span class="ck">import</span> <span class="cn">{ spfi, SPFx }</span> <span class="ck">from</span> <span class="cs">'@pnp/sp'</span><span class="cn">;</span><br/>
+<br/>
+<span class="cc">// Define your SharePoint data shape</span><br/>
+<span class="ck">interface</span> <span class="ct">IEmployee</span> <span class="cn">{</span><br/>
+<span class="cn">&nbsp;&nbsp;Id: </span><span class="ct">number</span><span class="cn">;</span><br/>
+<span class="cn">&nbsp;&nbsp;Title: </span><span class="ct">string</span><span class="cn">;</span><br/>
+<span class="cn">&nbsp;&nbsp;Department: </span><span class="ct">string</span><span class="cn">;</span><br/>
+<span class="cn">}</span><br/>
+<br/>
+<span class="ck">const</span> <span class="cf">EmployeeDirectory</span><span class="cn">: React.</span><span class="ct">FC</span><span class="cn"> = () => {</span><br/>
+<span class="cn">&nbsp;&nbsp;</span><span class="ck">const</span> <span class="cn">[employees, setEmployees] =</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;React.</span><span class="cf">useState</span><span class="cn">&lt;</span><span class="ct">IEmployee</span><span class="cn">[]&gt;([]);</span><br/>
+<br/>
+<span class="cn">&nbsp;&nbsp;React.</span><span class="cf">useEffect</span><span class="cn">(() => {</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;sp.web.lists</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.</span><span class="cf">getByTitle</span><span class="cn">(</span><span class="cs">'Employees'</span><span class="cn">)</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.items.</span><span class="cf">select</span><span class="cn">(</span><span class="cs">'Title'</span><span class="cn">,</span><span class="cs">'Department'</span><span class="cn">)()</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.</span><span class="cf">then</span><span class="cn">(</span><span class="cf">setEmployees</span><span class="cn">);</span><br/>
+<span class="cn">&nbsp;&nbsp;}, []);</span><br/>
+<br/>
+<span class="cn">&nbsp;&nbsp;</span><span class="ck">return</span> <span class="cn">(</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&lt;</span><span class="ct">ul</span><span class="cn">&gt;</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{employees.</span><span class="cf">map</span><span class="cn">(e => (</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;</span><span class="ct">li</span> <span class="ck">key</span><span class="cn">={e.Id}&gt;{e.Title}&lt;/</span><span class="ct">li</span><span class="cn">&gt;</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}</span><br/>
+<span class="cn">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/</span><span class="ct">ul</span><span class="cn">&gt;</span><br/>
+<span class="cn">&nbsp;&nbsp;);</span><br/>
+<span class="cn">};</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="container">
+    <div class="stats-grid">
+      <div>
+        <div class="stat-num">10<span>+</span></div>
+        <div class="stat-label">In-depth chapters</div>
+      </div>
+      <div>
+        <div class="stat-num">5</div>
+        <div class="stat-label">Real-world projects</div>
+      </div>
+      <div>
+        <div class="stat-num">200<span>+</span></div>
+        <div class="stat-label">Pages of content</div>
+      </div>
+      <div>
+        <div class="stat-num stat-num--gold" style="color:var(--gold)">$49</div>
+        <div class="stat-label">One-time purchase</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PROBLEM / SOLUTION -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">The gap in the market</div>
+    <h2>Most SharePoint devs are stuck in the past</h2>
+    <p class="section-desc">The Microsoft 365 platform has moved to modern, component-based UI. Most developers haven't caught up — yet.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="card-label red">Where most devs are stuck</div>
+        <div class="problem-item"><span class="ico">❌</span><span>JavaScript injection into content editor web parts</span></div>
+        <div class="problem-item"><span class="ico">❌</span><span>No TypeScript — guessing field names at runtime</span></div>
+        <div class="problem-item"><span class="ico">❌</span><span>Classic "farm solutions" that don't work in SharePoint Online</span></div>
+        <div class="problem-item"><span class="ico">❌</span><span>Beautiful UI designs that look out of place in M365</span></div>
+        <div class="problem-item"><span class="ico">❌</span><span>No idea how to deploy or package solutions professionally</span></div>
+      </div>
+      <div class="problem-card solution">
+        <div class="card-label blue">What this book gives you</div>
+        <div class="problem-item"><span class="ico">✅</span><span>SPFx web parts built with modern React and hooks</span></div>
+        <div class="problem-item"><span class="ico">✅</span><span>Full TypeScript — know every field, every type, at design time</span></div>
+        <div class="problem-item"><span class="ico">✅</span><span>Tenant-scoped solutions that deploy in minutes</span></div>
+        <div class="problem-item"><span class="ico">✅</span><span>Fluent UI components that look native to Microsoft 365</span></div>
+        <div class="problem-item"><span class="ico">✅</span><span>Production checklist, testing, and performance patterns</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHAT'S INSIDE -->
+<section class="inside-section" id="inside">
+  <div class="container">
+    <div class="section-eyebrow">Table of contents</div>
+    <h2>Everything inside the book</h2>
+    <p class="section-desc">From zero to deploying production web parts — every step covered in order.</p>
+    <div class="chapter-grid">
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 01</div>
+        <div class="chapter-title">SPFx Fundamentals</div>
+        <div class="chapter-desc">Architecture overview, SPFx vs classic development, key concepts every developer needs to know.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 02</div>
+        <div class="chapter-title">Dev Environment Setup</div>
+        <div class="chapter-desc">Node.js 18, Yeoman, Gulp, VS Code extensions, and your free M365 developer tenant — ready in 30 minutes.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 03</div>
+        <div class="chapter-title">Your First Web Part</div>
+        <div class="chapter-desc">Scaffold, run, and understand every single file the generator creates. No mystery code.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 04</div>
+        <div class="chapter-title">TypeScript for SPFx</div>
+        <div class="chapter-desc">Interfaces, generics, enums, and props patterns that you will use in every real SPFx project.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 05</div>
+        <div class="chapter-title">React State & Hooks</div>
+        <div class="chapter-desc">useState, useEffect, useCallback — the exact hooks and patterns used in production web parts.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 06</div>
+        <div class="chapter-title">Data with PnPjs</div>
+        <div class="chapter-desc">Read, create, update, delete SharePoint list items — the clean way, with full TypeScript support.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 07</div>
+        <div class="chapter-title">Fluent UI & Styling</div>
+        <div class="chapter-desc">CSS Modules for custom layouts + Fluent UI components that match Microsoft 365's native look.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 08</div>
+        <div class="chapter-title">5 Real Projects</div>
+        <div class="chapter-desc">Employee Directory, Announcements Feed, Project Tracker, Weather Widget, Leave Request Form.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 09</div>
+        <div class="chapter-title">Deployment & Packaging</div>
+        <div class="chapter-desc">Bundle, package, upload to App Catalog. Tenant-scoped vs site-scoped deployment explained.</div>
+      </div>
+      <div class="chapter-card">
+        <div class="chapter-num">Chapter 10</div>
+        <div class="chapter-title">Performance & Testing</div>
+        <div class="chapter-desc">Jest unit testing, performance patterns, and a production-ready code review checklist.</div>
+      </div>
+      <div class="chapter-card" style="border-color:rgba(255,185,0,0.3);background:rgba(255,185,0,0.04)">
+        <div class="chapter-num" style="color:var(--gold)">Bonus Chapter</div>
+        <div class="chapter-title">Monetise Your Skills</div>
+        <div class="chapter-desc">Freelancing, contracting, teaching — and a 90-day action plan to reach ₹1L/month.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROJECTS -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">5 portfolio projects</div>
+    <h2>Build things you can actually show clients</h2>
+    <p class="section-desc">Every project is based on real corporate SharePoint use cases — not toy examples.</p>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-icon">👥</div>
+        <div>
+          <div class="project-name">Employee Directory</div>
+          <div class="project-desc">Search, filter, and display employees with Fluent UI Persona cards. Links directly to Outlook and Teams.</div>
+          <div class="project-tag">PnPjs + Fluent UI</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">📢</div>
+        <div>
+          <div class="project-name">Announcements Feed</div>
+          <div class="project-desc">Category tabs, rich text, configurable item count via property pane. Clean and fast.</div>
+          <div class="project-tag">Property Pane</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">📊</div>
+        <div>
+          <div class="project-name">Project Tracker Dashboard</div>
+          <div class="project-desc">Status badges, progress bars, filters, and CSV export. Shows real data from SharePoint lists.</div>
+          <div class="project-tag">REST + CSV Export</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">🌤</div>
+        <div>
+          <div class="project-name">Weather + News Widget</div>
+          <div class="project-desc">External API integration with OpenWeatherMap + company news from SharePoint. Auto-refreshes.</div>
+          <div class="project-tag">External APIs</div>
+        </div>
+      </div>
+      <div class="project-card" style="grid-column:1/-1">
+        <div class="project-icon">📝</div>
+        <div>
+          <div class="project-name">Leave Request Form + Power Automate</div>
+          <div class="project-desc">Full form with date pickers, validation, submission history table, and a Power Automate flow trigger for manager approval. A complete end-to-end SPFx solution.</div>
+          <div class="project-tag">Power Automate</div>
+          <span class="project-tag" style="margin-left:6px">Forms</span>
+          <span class="project-tag" style="margin-left:6px">Full-stack SPFx</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHO IT'S FOR -->
+<section style="background:var(--navy2)">
+  <div class="container">
+    <div class="section-eyebrow">Who this is for</div>
+    <h2>Made for people exactly like you</h2>
+    <div class="audience-grid">
+      <div class="audience-card">
+        <div class="audience-icon">🏗️</div>
+        <div>
+          <div class="audience-title">SharePoint Developers</div>
+          <div class="audience-desc">You know SharePoint well but want to add modern React skills and command higher rates in the market.</div>
+        </div>
+      </div>
+      <div class="audience-card">
+        <div class="audience-icon">⚛️</div>
+        <div>
+          <div class="audience-title">Frontend Developers</div>
+          <div class="audience-desc">You know React but want to break into the Microsoft 365 ecosystem where enterprise budgets are large.</div>
+        </div>
+      </div>
+      <div class="audience-card">
+        <div class="audience-icon">🏢</div>
+        <div>
+          <div class="audience-title">IT Professionals</div>
+          <div class="audience-desc">Your company runs on SharePoint and you need to build or commission custom solutions without guessing.</div>
+        </div>
+      </div>
+      <div class="audience-card">
+        <div class="audience-icon">💼</div>
+        <div>
+          <div class="audience-title">Freelancers</div>
+          <div class="audience-desc">You want to offer high-value SharePoint customisation services and need production-quality knowledge to back it up.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="section-eyebrow">Pricing</div>
+    <h2>One price. Yours forever.</h2>
+    <p class="section-desc" style="margin:12px auto 0">No subscription. No drip. Instant download as soon as you pay.</p>
+    <div class="pricing-card">
+      <div class="pricing-top">
+        <div class="pricing-badge">🔥 Launch Price</div>
+        <div class="price-original">Usually $79</div>
+        <div class="price-current"><sup>$</sup>49</div>
+        <div class="price-desc">One-time payment · Instant PDF download</div>
+      </div>
+      <div class="pricing-body">
+        <div class="include-list">
+          <div class="include-item"><span class="check">✓</span> Complete 200+ page PDF eBook</div>
+          <div class="include-item"><span class="check">✓</span> 10 in-depth chapters + bonus career chapter</div>
+          <div class="include-item"><span class="check">✓</span> 5 complete real-world project guides</div>
+          <div class="include-item"><span class="check">✓</span> All code examples (TypeScript + React)</div>
+          <div class="include-item"><span class="check">✓</span> Production deployment checklist</div>
+          <div class="include-item"><span class="check">✓</span> 90-day action plan to monetise your skills</div>
+          <div class="include-item"><span class="check">✓</span> Free updates as SPFx evolves</div>
+        </div>
+        <a href="#" class="btn-buy">Get instant access — $49 →</a>
+        <div class="guarantee">🛡️ 30-day money-back guarantee · Secure payment via Gumroad</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">FAQ</div>
+    <h2 style="text-align:center">Common questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">Do I need to know React before reading this book?</div>
+        <div class="faq-a">Basic JavaScript knowledge is enough. Chapter 5 covers the React hooks and patterns you need for SPFx. You do not need prior React experience — the book builds it up from what a SharePoint developer already knows.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What version of SPFx does this cover?</div>
+        <div class="faq-a">SPFx 1.18.x with Node.js 18 LTS — the current recommended setup as of 2025. The book specifically notes which features are version-specific so you can follow along without confusion.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Do I need a paid Microsoft 365 tenant?</div>
+        <div class="faq-a">No. The book walks you through setting up a completely free Microsoft 365 E5 developer tenant. Chapter 2 covers this step by step. It takes about 10 minutes.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is this for SharePoint On-Premises or SharePoint Online?</div>
+        <div class="faq-a">Primarily SharePoint Online (Microsoft 365). SPFx works with SharePoint Server 2019+ too, but the book focuses on SharePoint Online where modern UI is fully supported and most new projects live.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What format is the download?</div>
+        <div class="faq-a">A PDF file that you can read on any device — laptop, tablet, or phone. You get instant access as soon as your payment is confirmed via Gumroad.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section style="background:var(--navy2);text-align:center;padding:80px 0">
+  <div class="container">
+    <div class="section-eyebrow">Ready to start?</div>
+    <h2 style="font-size:clamp(2rem,4vw,3rem);margin-bottom:16px">Stop building with yesterday's tools</h2>
+    <p style="color:var(--text2);font-size:1rem;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto">
+      Every week you wait is another week you're not charging what your skills are worth. The gap in the market is real — and this book closes it.
+    </p>
+    <a href="#pricing" class="btn-primary" style="font-size:1.05rem;padding:16px 36px;display:inline-flex">
+      Get SharePoint Modern UI Mastery — $49
+    </a>
+    <p style="color:var(--text3);font-size:0.8rem;margin-top:16px">30-day money-back guarantee · Instant PDF download</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SPFx Mastery</div>
+  <div class="footer-sub">© 2025 · SharePoint Modern UI Mastery · Built by a Developer, for Developers</div>
+</footer>
+
+</body>
+</html>
