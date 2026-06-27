@@ -1,2 +1,2 @@
 # spfx-modern-mastery
-spfx E Book
+SPFx E Book
