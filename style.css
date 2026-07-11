@@ -431,7 +431,7 @@
     }
 
     .card-label.red {
-      color: #E74C3C
+      color: #FF4C4C
     }
 
     .card-label.blue {
@@ -488,7 +488,7 @@
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--blue);
+      color: var(--white);
       margin-bottom: 8px;
       font-family: 'JetBrains Mono', monospace
     }
@@ -774,7 +774,7 @@
     }
 
     .footer-sub {
-      color: var(--text3);
+      color: var(--text2);
       font-size: 0.8rem
     }
 
